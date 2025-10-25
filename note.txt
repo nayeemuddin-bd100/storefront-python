@@ -1,0 +1,36 @@
+section 1
+2.12
+
+
+
+
+
+
+
+
+
+Orm
+==================
+# Retrieve all users
+users = session.query(User).all()
+
+# Retrieve users with age greater than 30
+older_users = session.query(User).filter(User.age > 30).all()
+
+# Get the first user (based on the default order)
+first_user = session.query(User).first()
+
+# Get the total count of users
+user_count = session.query(User).count()
+
+# Limit the result to the first 10 users
+limited_users = session.query(User).limit(10).all()
+
+# Order users by their name
+ordered_users = session.query(User).order_by(User.name).all()
+
+# Check if any users exist with the name "John"
+exists = session.query(User).filter(User.name == "John").exists()
+
+# Group users by age and count the number of users in each age group
+age_groups = session.query(User.age, func.count(User.id)).group_by(User.age).all()
