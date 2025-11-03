@@ -1,0 +1,29 @@
+
+
+
+
+1.http request
+2.restframwork installation
+3.api view
+4.browsable api
+5.serializer
+6.restframwork http status handling
+7.serializing relationship
+    - Primary key
+    - string
+    - Nested Object
+    - hyperlink
+8. Model serializer
+9.Deserializing object
+8. Get , post , put , patch, delete data using api view
+
+
+
+
+django :
+httpRequest
+httpResponse
+
+restframwork
+request
+response

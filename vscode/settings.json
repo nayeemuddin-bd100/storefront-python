@@ -1,0 +1,29 @@
+{
+    // ✅ Format & organize imports on save
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+
+    // ✅ Use Black as the formatter
+    "python.formatting.provider": "black",
+
+    // ✅ Use Flake8 as linter
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+
+    // ✅ Pylance auto-imports
+    "python.languageServer": "Pylance",
+    "python.analysis.autoImportCompletions": true,
+
+    // ✅ Suggest imports while typing
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": false,
+        "strings": true
+    },
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+
+    // ✅ Optional: line length ruler
+    "editor.rulers": [88]
+}

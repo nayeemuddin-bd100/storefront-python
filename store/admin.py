@@ -89,7 +89,7 @@ class CollectionAdmin(admin.ModelAdmin):
     # object in the queryset. In this case, it adds products_count which counts
 
 
-#    Without annotate:
+# Without annotate:
 #   collections = Collection.objects.all()
 #   for collection in collections:
 #       # To get product count, you'd need a separate query

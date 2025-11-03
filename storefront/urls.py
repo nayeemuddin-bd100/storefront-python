@@ -1,7 +1,8 @@
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from playground import views
+
 
 admin.site.site_header = 'Storefront Admin'
 admin.site.site_title = 'Storefront Admin Portal'
@@ -19,4 +20,9 @@ urlpatterns = [
     path('playground/select-prefetch/', views.select_prefetch_demo),
     path('playground/crud/', views.crud_operations_demo),
     path('playground/transactions/', views.transactions_demo),
+
+
+
+    # store
+    path('store/', include('store.urls')),
 ]

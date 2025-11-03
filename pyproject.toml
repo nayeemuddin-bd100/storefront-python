@@ -1,0 +1,19 @@
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+extend-exclude = [
+  "migrations",
+  "venv",
+  ".venv",
+]
+
+[tool.isort]
+profile = "black"     # Ensures isort works seamlessly with Black
+line_length = 88
+skip = ["migrations", "venv", ".venv"]
+
+[flake8]
+max-line-length = 88
+extend-ignore = E203, W503   # Compatible with Black
+exclude = .git,__pycache__,migrations,venv,.venv
+select = C,E,F,W,B
