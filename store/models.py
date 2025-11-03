@@ -124,3 +124,13 @@ class Order(models.Model):
     # This is a REVERSE relationship (use prefetch_related for optimization)
     customer = models.ForeignKey(
         Customer, on_delete=models.PROTECT, related_name='orders')
+
+
+class Review(models.Model):
+    # ForeignKey - Many Reviews belong to ONE Product
+    # related_name='reviews' allows: product.reviews.all() to get all reviews for a product
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name='reviews')
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)

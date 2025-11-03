@@ -9,6 +9,8 @@ djangorestframework = "*"
 black = "*"
 flake8 = "*"
 isort = "*"
+drf-nested-routers = "*"
+django-filter = "*"
 
 [dev-packages]
 

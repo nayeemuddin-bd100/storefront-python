@@ -1,7 +1,7 @@
 from decimal import Decimal
 from rest_framework import serializers
 
-from store.models import Product
+from store.models import Product, Review
 
 
 class CollectionSerializer(serializers.Serializer):
@@ -45,3 +45,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
     # Serializing relationships - primary key
     # collection = CollectionSerializer()
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['id', 'product', 'name', 'description', 'date', 'product']

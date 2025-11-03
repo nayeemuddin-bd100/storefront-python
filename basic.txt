@@ -1,0 +1,120 @@
+
+  *args - Positional Arguments
+
+  *args collects extra positional arguments into a tuple.
+
+  def example(*args):
+      print(args)
+      print(type(args))
+
+  example(1, 2, 3)
+  # Output: (1, 2, 3)
+  # Type: <class 'tuple'>
+
+  example('hello', 'world')
+  # Output: ('hello', 'world')
+
+  Real example:
+  def add_numbers(*args):
+      total = 0
+      for num in args:
+          total += num
+      return total
+
+  add_numbers(1, 2, 3)  # Returns 6
+  add_numbers(5, 10)     # Returns 15
+
+  **kwargs - Keyword Arguments
+
+  **kwargs collects extra keyword arguments into a dictionary.
+
+  def example(**kwargs):
+      print(kwargs)
+      print(type(kwargs))
+
+  example(name='John', age=25)
+  # Output: {'name': 'John', 'age': 25}
+  # Type: <class 'dict'>
+
+  Real example:
+  def create_user(**kwargs):
+      for key, value in kwargs.items():
+          print(f"{key}: {value}")
+
+  create_user(username='alice', email='alice@example.com', age=30)
+  # Output:
+  # username: alice
+  # email: alice@example.com
+  # age: 30
+
+  Using Both Together
+
+  def complex_function(*args, **kwargs):
+      print("Positional args:", args)
+      print("Keyword args:", kwargs)
+
+  complex_function(1, 2, 3, name='Bob', city='NYC')
+  # Output:
+  # Positional args: (1, 2, 3)
+  # Keyword args: {'name': 'Bob', 'city': 'NYC'}
+
+  How It Works in Your Django Views
+
+  In your ProductDetailView:
+
+  def get(self, request, *args, **kwargs):
+      return self.retrieve(request, *args, **kwargs)
+
+  What's happening:
+
+  1. Django passes the URL parameters as kwargs:
+  # URL: /products/5/
+  # path('products/<int:pk>/', ...)
+
+  # Django calls:
+  get(self, request, *args, **kwargs)
+  # where kwargs = {'pk': 5}
+  2. You forward them to the mixin:
+  self.retrieve(request, *args, **kwargs)
+  # Same as: self.retrieve(request, pk=5)
+  3. The mixin uses self.kwargs to access them:
+  # Inside retrieve() method:
+  def retrieve(self, request, *args, **kwargs):
+      instance = self.get_object()  # Uses self.kwargs['pk']
+
+  Practical Example - Why It's Useful
+
+  Without *args, **kwargs:
+  def get(self, request, pk):
+      return self.retrieve(request, pk)
+
+  # Problem: Breaks if DRF passes extra parameters!
+
+  With *args, **kwargs:
+  def get(self, request, *args, **kwargs):
+      return self.retrieve(request, *args, **kwargs)
+
+  # Flexible! Works with any parameters DRF passes
+
+  The Unpacking Operators
+
+  The * and ** also work in reverse to unpack values:
+
+  # Unpacking a list with *
+  numbers = [1, 2, 3]
+  print(*numbers)  # Same as: print(1, 2, 3)
+
+  # Unpacking a dict with **
+  data = {'name': 'Alice', 'age': 25}
+  create_user(**data)  # Same as: create_user(name='Alice', age=25)
+
+  Summary Table
+
+  | Syntax   | Type  | Collects             | Example
+                        |
+  |----------|-------|----------------------|----------------------
+  ----------------------|
+  | *args    | Tuple | Positional arguments | func(1, 2, 3) → args 
+  = (1, 2, 3)           |
+  | **kwargs | Dict  | Keyword arguments    | func(a=1, b=2) →
+  kwargs = {'a': 1, 'b': 2} |

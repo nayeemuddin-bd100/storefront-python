@@ -1,29 +1,975 @@
 
 
+1. HTTP Request & Response
+2. REST Framework Installation
+3. API View
+4. Browsable API
+5. Serializers
+6. HTTP Status Handling
+7. Serializing Relationships
+   - Primary Key
+   - String
+   - Nested Object
+   - Hyperlink
+8. Model Serializer
+9. Deserializing Objects
+10. CRUD Operations (GET, POST, PUT, PATCH, DELETE)
+
+2.12
+
+---------------
+
+1.Class Based View
+
+2. Mixins
+ Mixins are reusable classes that provide common functionality for
+   API views. They handle standard operations like listing,
+  creating, retrieving, updating, and deleting objects.
+
+  Main DRF Mixins:
+  - ListModelMixin - GET list of objects
+  - CreateModelMixin - POST to create
+  - RetrieveModelMixin - GET single object
+  - UpdateModelMixin - PUT/PATCH to update
+  - DestroyModelMixin - DELETE object
+
+3. ViewSet
+4. Nested route viewset
 
 
-1.http request
-2.restframwork installation
-3.api view
-4.browsable api
-5.serializer
-6.restframwork http status handling
-7.serializing relationship
-    - Primary key
-    - string
-    - Nested Object
-    - hyperlink
-8. Model serializer
-9.Deserializing object
-8. Get , post , put , patch, delete data using api view
+
+================================================================================
+ DJANGO REST FRAMEWORK (DRF)
+================================================================================
+
+TABLE OF CONTENTS:
+1. HTTP Request & Response
+2. REST Framework Installation
+3. API View
+4. Browsable API
+5. Serializers
+6. HTTP Status Handling
+7. Serializing Relationships
+   - Primary Key
+   - String
+   - Nested Object
+   - Hyperlink
+8. Model Serializer
+9. Deserializing Objects
+10. CRUD Operations (GET, POST, PUT, PATCH, DELETE)
+
+================================================================================
+1. HTTP REQUEST & RESPONSE
+================================================================================
+
+Django vs Django REST Framework:
+
+DJANGO (Traditional):
+  - HttpRequest → Request object from Django
+  - HttpResponse → Returns HTML pages
+  - Used for: Server-side rendered templates
+
+  Example:
+    from django.http import HttpResponse
+
+    def product_list(request):
+        return HttpResponse("Product List Page")  # Returns HTML string
+
+REST FRAMEWORK:
+  - Request → Enhanced request object from DRF
+  - Response → Returns JSON/XML data
+  - Used for: Building APIs
+
+  Example:
+    from rest_framework.response import Response
+
+    @api_view()
+    def product_list(request):
+        return Response({'message': 'Product List'})  # Returns JSON
+
+Key Differences:
+
+HttpRequest vs Request:
+  Django HttpRequest:
+    - request.GET → Query parameters
+    - request.POST → Form data only
+    - Limited content type support
+
+  DRF Request:
+    - request.query_params → Query parameters (more semantic)
+    - request.data → Works with JSON, form data, files
+    - Automatic parsing of JSON, XML, etc.
+
+HttpResponse vs Response:
+  Django HttpResponse:
+    - Returns raw HTML/text
+    - Manual content type setting
+    - No automatic serialization
+
+  DRF Response:
+    - Automatically converts data to JSON/XML
+    - Content negotiation (chooses format based on client request)
+    - Handles complex data structures
 
 
+================================================================================
+2. REST FRAMEWORK INSTALLATION
+================================================================================
+
+Step 1: Install Django REST Framework
+  pip install djangorestframework
+
+Step 2: Add to INSTALLED_APPS in settings.py
+  INSTALLED_APPS = [
+      ...
+      'rest_framework',
+      'store',  # Your app
+  ]
+
+Step 3: Configure REST Framework settings (optional)
+  REST_FRAMEWORK = {
+      'COERCE_DECIMAL_TO_STRING': False,  # Return decimals as numbers, not strings
+  }
+
+Your settings.py configuration:
+  INSTALLED_APPS = [
+      'django.contrib.admin',
+      'django.contrib.auth',
+      ...
+      'rest_framework',  # Added REST Framework
+      'store',
+  ]
+
+  REST_FRAMEWORK = {
+      'COERCE_DECIMAL_TO_STRING': False,  # Decimals return as 99.99, not "99.99"
+  }
 
 
-django :
-httpRequest
-httpResponse
+================================================================================
+3. API VIEW
+================================================================================
 
-restframwork
-request
-response
+@api_view() decorator converts regular functions into REST API endpoints.
+
+Without @api_view (Traditional Django):
+  from django.http import HttpResponse
+
+  def product_list(request):
+      return HttpResponse("Product List Page")  # Returns HTML
+
+With @api_view (REST Framework):
+  from rest_framework.decorators import api_view
+  from rest_framework.response import Response
+
+  @api_view()  # Defaults to ['GET']
+  def product_list(request):
+      return Response({'message': 'Product List'})  # Returns JSON
+
+What @api_view() does:
+  1. Converts request to DRF Request object
+  2. Enables Response object (automatic JSON conversion)
+  3. Adds authentication, permissions support
+  4. Provides browsable API interface
+  5. Handles content negotiation
+
+Specifying HTTP Methods:
+  @api_view(['GET'])  # Only GET requests allowed
+  def product_list(request):
+      ...
+
+  @api_view(['GET', 'POST'])  # GET and POST allowed
+  def product_list(request):
+      if request.method == 'GET':
+          # Handle GET
+      elif request.method == 'POST':
+          # Handle POST
+
+  @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+  def product_detail(request, id):
+      if request.method == 'GET':
+          # Retrieve product
+      elif request.method == 'PUT':
+          # Update entire product
+      elif request.method == 'PATCH':
+          # Partially update product
+      elif request.method == 'DELETE':
+          # Delete product
+
+Your code example (store/views.py):
+  @api_view(['GET', 'POST'])
+  def product_list(request):
+      if request.method == 'GET':
+          queryset = Product.objects.all()
+          serializer = ProductSerializer(queryset, many=True)
+          return Response(serializer.data)
+      elif request.method == 'POST':
+          serializer = ProductSerializer(data=request.data)
+          serializer.is_valid(raise_exception=True)
+          serializer.save()
+          return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+================================================================================
+4. BROWSABLE API
+================================================================================
+
+Browsable API is DRF's web interface for testing APIs in the browser.
+
+Features:
+  1. HTML interface for API endpoints
+  2. Test API directly from browser
+  3. Submit forms to POST/PUT/DELETE
+  4. View JSON responses formatted nicely
+  5. Authentication interface
+  6. Documentation hints
+
+Accessing Browsable API:
+  1. Start server: python manage.py runserver
+  2. Visit API endpoint in browser: http://127.0.0.1:8000/store/products/
+  3. See HTML interface with:
+     - JSON response
+     - Form to submit data
+     - HTTP methods available
+     - Status codes
+
+Example:
+  GET http://127.0.0.1:8000/store/products/
+    Shows:
+      - List of products in JSON
+      - Form to POST new product
+      - Links to individual products
+
+  GET http://127.0.0.1:8000/store/products/1
+    Shows:
+      - Single product details
+      - Form to PUT/PATCH update
+      - DELETE button
+
+Content Negotiation:
+  Browser request → Returns HTML (Browsable API)
+  API client (fetch, axios) → Returns JSON
+  DRF automatically chooses format based on request headers
+
+Disabling Browsable API (production):
+  REST_FRAMEWORK = {
+      'DEFAULT_RENDERER_CLASSES': [
+          'rest_framework.renderers.JSONRenderer',
+      ]
+  }
+
+
+================================================================================
+5. SERIALIZERS
+================================================================================
+
+Serializers convert complex data (QuerySets, model instances) to native Python
+data types (dict, list) that can be easily rendered into JSON/XML.
+
+Why use serializers?
+  1. Convert Django models to JSON
+  2. Validate incoming data
+  3. Handle complex data transformations
+  4. Control what fields are exposed in API
+
+Basic Serializer:
+  from rest_framework import serializers
+
+  class ProductSerializer(serializers.Serializer):
+      id = serializers.IntegerField()
+      title = serializers.CharField(max_length=200)
+      price = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+Serializing Data (Model → JSON):
+  # Single object
+  product = Product.objects.get(id=1)
+  serializer = ProductSerializer(product)
+  serializer.data  # Returns: {'id': 1, 'title': 'Laptop', 'price': 999.99}
+
+  # Multiple objects
+  products = Product.objects.all()
+  serializer = ProductSerializer(products, many=True)  # many=True for QuerySet
+  serializer.data  # Returns: [{'id': 1, ...}, {'id': 2, ...}]
+
+Returning Serialized Data:
+  @api_view(['GET'])
+  def product_list(request):
+      queryset = Product.objects.all()
+      serializer = ProductSerializer(queryset, many=True)
+      return Response(serializer.data)  # Automatically converts to JSON
+
+Custom Fields:
+
+SerializerMethodField - Computed values:
+  class ProductSerializer(serializers.Serializer):
+      id = serializers.IntegerField()
+      title = serializers.CharField(max_length=200)
+      price = serializers.DecimalField(max_digits=10, decimal_places=2)
+      price_with_tax = serializers.SerializerMethodField(
+          method_name='calculate_tax'
+      )
+
+      def calculate_tax(self, product: Product) -> Decimal:
+          return product.price * Decimal("1.2")
+
+  Output: {'id': 1, 'price': 100.00, 'price_with_tax': 120.00}
+
+source parameter - Rename fields:
+  class ProductSerializer(serializers.Serializer):
+      id = serializers.IntegerField()
+      title = serializers.CharField(max_length=200)
+      unit_price = serializers.DecimalField(
+          max_digits=10, decimal_places=2, source='price'
+      )
+      # Model has 'price' field, API exposes as 'unit_price'
+
+  Output: {'id': 1, 'unit_price': 999.99}  # 'price' renamed to 'unit_price'
+
+
+================================================================================
+6. REST FRAMEWORK HTTP STATUS HANDLING
+================================================================================
+
+DRF provides status code constants for cleaner, more readable code.
+
+Without status constants:
+  return Response(serializer.data, status=201)  # What does 201 mean?
+  return Response(status=404)  # What does 404 mean?
+
+With status constants:
+  from rest_framework import status
+
+  return Response(serializer.data, status=status.HTTP_201_CREATED)  # Clear!
+  return Response(status=status.HTTP_404_NOT_FOUND)  # Clear!
+
+Common Status Codes:
+
+Success Codes (2xx):
+  status.HTTP_200_OK → 200 (Success, general)
+  status.HTTP_201_CREATED → 201 (Resource created successfully)
+  status.HTTP_204_NO_CONTENT → 204 (Success, no content to return)
+
+Client Error Codes (4xx):
+  status.HTTP_400_BAD_REQUEST → 400 (Invalid data)
+  status.HTTP_401_UNAUTHORIZED → 401 (Authentication required)
+  status.HTTP_403_FORBIDDEN → 403 (No permission)
+  status.HTTP_404_NOT_FOUND → 404 (Resource not found)
+
+Server Error Codes (5xx):
+  status.HTTP_500_INTERNAL_SERVER_ERROR → 500 (Server error)
+
+When to use which status:
+
+GET (Retrieve):
+  Success → status.HTTP_200_OK
+  Not Found → status.HTTP_404_NOT_FOUND
+
+POST (Create):
+  Success → status.HTTP_201_CREATED
+  Invalid Data → status.HTTP_400_BAD_REQUEST
+
+PUT/PATCH (Update):
+  Success → status.HTTP_200_OK
+  Not Found → status.HTTP_404_NOT_FOUND
+  Invalid Data → status.HTTP_400_BAD_REQUEST
+
+DELETE (Delete):
+  Success → status.HTTP_204_NO_CONTENT
+  Not Found → status.HTTP_404_NOT_FOUND
+
+Your code example:
+  @api_view(['GET', 'POST'])
+  def product_list(request):
+      if request.method == 'GET':
+          ...
+          return Response(serializer.data)  # 200 OK (default)
+      elif request.method == 'POST':
+          ...
+          return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+  @api_view(['DELETE'])
+  def product_detail(request, id):
+      product = get_object_or_404(Product, pk=id)
+      product.delete()
+      return Response(status=status.HTTP_204_NO_CONTENT)
+
+Validation Errors:
+  serializer = ProductSerializer(data=request.data)
+  if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_201_CREATED)
+  else:
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+  # Shortcut - automatically returns 400 if invalid
+  serializer.is_valid(raise_exception=True)  # Raises ValidationError if invalid
+
+
+================================================================================
+7. SERIALIZING RELATIONSHIPS
+================================================================================
+
+When models have relationships (ForeignKey, OneToOne, ManyToMany), you need to
+serialize the related objects.
+
+Model Example:
+  class Collection(models.Model):
+      title = models.CharField(max_length=255)
+
+  class Product(models.Model):
+      title = models.CharField(max_length=255)
+      price = models.DecimalField(max_digits=10, decimal_places=2)
+      collection = models.ForeignKey(Collection, on_delete=models.PROTECT)
+
+Four Ways to Serialize Relationships:
+
+-----------------------------------
+7.1 PRIMARY KEY (Default)
+-----------------------------------
+Returns just the ID of related object.
+
+  class ProductSerializer(serializers.Serializer):
+      id = serializers.IntegerField()
+      title = serializers.CharField(max_length=200)
+      collection = serializers.PrimaryKeyRelatedField(
+          queryset=Collection.objects.all()
+      )
+
+  Output:
+    {
+      'id': 1,
+      'title': 'Laptop',
+      'collection': 5  # Just the ID
+    }
+
+When to use: When client needs to fetch full collection separately
+Pros: Minimal data transfer
+Cons: Client needs extra request to get collection details
+
+-----------------------------------
+7.2 STRING REPRESENTATION
+-----------------------------------
+Returns __str__() output of related object.
+
+  class ProductSerializer(serializers.Serializer):
+      id = serializers.IntegerField()
+      title = serializers.CharField(max_length=200)
+      collection = serializers.StringRelatedField()
+
+  Output:
+    {
+      'id': 1,
+      'title': 'Laptop',
+      'collection': 'Electronics'  # __str__() value
+    }
+
+When to use: Simple display, don't need full object
+Pros: Human-readable
+Cons: Can't access other collection fields
+
+-----------------------------------
+7.3 NESTED OBJECT
+-----------------------------------
+Returns full related object with all fields.
+
+  class CollectionSerializer(serializers.Serializer):
+      id = serializers.IntegerField()
+      title = serializers.CharField(max_length=255)
+
+  class ProductSerializer(serializers.Serializer):
+      id = serializers.IntegerField()
+      title = serializers.CharField(max_length=200)
+      collection = CollectionSerializer()  # Nested serializer
+
+  Output:
+    {
+      'id': 1,
+      'title': 'Laptop',
+      'collection': {
+          'id': 5,
+          'title': 'Electronics'
+      }
+    }
+
+When to use: Client needs related data immediately (avoid extra requests)
+Pros: All data in one response, fewer HTTP requests
+Cons: Larger response size, can cause deep nesting
+
+Your code example (commented out):
+  class ProductSerializer(serializers.Serializer):
+      ...
+      collection = CollectionSerializer()  # Nested object
+
+-----------------------------------
+7.4 HYPERLINK
+-----------------------------------
+Returns URL to related object's endpoint.
+
+  class ProductSerializer(serializers.Serializer):
+      id = serializers.IntegerField()
+      title = serializers.CharField(max_length=200)
+      collection = serializers.HyperlinkedRelatedField(
+          view_name='collection-detail',
+          queryset=Collection.objects.all()
+      )
+
+  Output:
+    {
+      'id': 1,
+      'title': 'Laptop',
+      'collection': 'http://localhost:8000/store/collections/5'
+    }
+
+When to use: RESTful APIs, discoverable endpoints
+Pros: Self-documenting, follows REST principles
+Cons: Client needs extra request
+
+Which to choose?
+  - Primary Key → Client already has collection data cached
+  - String → Simple display purposes
+  - Nested Object → Reduce HTTP requests, eager loading
+  - Hyperlink → Discoverable, RESTful APIs
+
+
+================================================================================
+8. MODEL SERIALIZER
+================================================================================
+
+ModelSerializer automatically generates fields based on model definition.
+Eliminates manual field declaration.
+
+Without ModelSerializer (Manual):
+  class ProductSerializer(serializers.Serializer):
+      id = serializers.IntegerField()
+      title = serializers.CharField(max_length=255)
+      price = serializers.DecimalField(max_digits=10, decimal_places=2)
+      inventory = serializers.IntegerField()
+      collection = serializers.PrimaryKeyRelatedField(
+          queryset=Collection.objects.all()
+      )
+      # Must manually define every field! 😰
+
+With ModelSerializer (Automatic):
+  class ProductSerializer(serializers.ModelSerializer):
+      class Meta:
+          model = Product
+          fields = ['id', 'title', 'price', 'inventory', 'collection']
+          # or
+          fields = '__all__'  # Include all model fields
+
+  # DRF automatically creates fields based on model! 🎉
+
+How ModelSerializer Works:
+  1. Inspects model fields
+  2. Automatically creates serializer fields
+  3. Includes validators from model
+  4. Provides default create() and update() methods
+
+Your code example (store/serializers.py):
+  class ProductSerializer(serializers.ModelSerializer):
+      class Meta:
+          model = Product
+          fields = ['id', 'title', 'unit_price', 'collection', 'inventory']
+
+      # Custom field mapping
+      unit_price = serializers.DecimalField(
+          max_digits=10, decimal_places=2, source='price'
+      )
+
+Meta class options:
+
+fields - Which fields to include:
+  fields = ['id', 'title', 'price']  # Only these fields
+  fields = '__all__'  # All model fields
+
+exclude - Which fields to exclude:
+  exclude = ['created_at', 'updated_at']  # All fields except these
+
+read_only_fields - Can't be written to:
+  read_only_fields = ['id', 'created_at']
+
+depth - Auto-nest relationships:
+  depth = 1  # Auto-nest ForeignKey relations 1 level deep
+
+  Output:
+    {
+      'id': 1,
+      'collection': {
+          'id': 5,
+          'title': 'Electronics'
+      }
+    }
+
+Customizing ModelSerializer:
+  class ProductSerializer(serializers.ModelSerializer):
+      class Meta:
+          model = Product
+          fields = ['id', 'title', 'unit_price', 'price_with_tax']
+
+      # Rename field
+      unit_price = serializers.DecimalField(
+          max_digits=10, decimal_places=2, source='price'
+      )
+
+      # Computed field
+      price_with_tax = serializers.SerializerMethodField()
+
+      def get_price_with_tax(self, product):
+          return product.price * Decimal('1.2')
+
+Benefits of ModelSerializer:
+  ✅ Less code (auto-generates fields)
+  ✅ Stays in sync with model
+  ✅ Includes model validators automatically
+  ✅ Provides create() and update() methods
+  ✅ Easier to maintain
+
+
+================================================================================
+9. DESERIALIZING OBJECTS
+================================================================================
+
+Deserialization = Converting JSON/data → Django model instance
+(Opposite of serialization)
+
+Process:
+  1. Receive data from client
+  2. Validate data
+  3. Create/update model instance
+
+Step 1: Receive Data
+  @api_view(['POST'])
+  def product_list(request):
+      # request.data contains JSON sent by client
+      # Example: {'title': 'Mouse', 'price': 29.99, 'inventory': 100}
+
+Step 2: Create Serializer with Data
+  serializer = ProductSerializer(data=request.data)
+  # data parameter indicates we're deserializing
+
+Step 3: Validate Data
+  if serializer.is_valid():
+      # Data is valid
+      print(serializer.validated_data)  # Cleaned, validated data
+  else:
+      # Data is invalid
+      print(serializer.errors)  # Error messages
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+Step 4: Save to Database
+  serializer.save()  # Creates Product instance and saves to database
+
+Your code example:
+  @api_view(['POST'])
+  def product_list(request):
+      serializer = ProductSerializer(data=request.data)  # Deserialize
+      serializer.is_valid(raise_exception=True)  # Validate (auto-return 400 if invalid)
+      serializer.save()  # Save to database
+      return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+Validation:
+
+Manual validation:
+  if serializer.is_valid():
+      serializer.validated_data  # {'title': 'Mouse', 'price': Decimal('29.99')}
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_201_CREATED)
+  else:
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+Automatic validation (shortcut):
+  serializer.is_valid(raise_exception=True)  # Raises ValidationError if invalid
+  # No need for if/else, DRF handles error response automatically
+
+Validation errors example:
+  # Client sends: {'title': '', 'price': -10}
+  serializer.is_valid()
+
+  serializer.errors:
+    {
+      'title': ['This field may not be blank.'],
+      'price': ['Ensure this value is greater than or equal to 0.']
+    }
+
+Custom Validation:
+  class ProductSerializer(serializers.ModelSerializer):
+      class Meta:
+          model = Product
+          fields = ['id', 'title', 'price', 'inventory']
+
+      def validate_price(self, value):
+          if value < 0:
+              raise serializers.ValidationError("Price cannot be negative")
+          return value
+
+      def validate(self, data):
+          # Validate multiple fields together
+          if data['price'] > 10000 and data['inventory'] < 10:
+              raise serializers.ValidationError(
+                  "Expensive items must have at least 10 in stock"
+              )
+          return data
+
+Creating vs Updating:
+
+Create (new object):
+  serializer = ProductSerializer(data=request.data)
+  serializer.is_valid(raise_exception=True)
+  serializer.save()  # Creates new Product
+
+Update (existing object):
+  product = Product.objects.get(id=1)
+  serializer = ProductSerializer(product, data=request.data)  # Pass instance
+  serializer.is_valid(raise_exception=True)
+  serializer.save()  # Updates existing product
+
+Partial Update:
+  product = Product.objects.get(id=1)
+  serializer = ProductSerializer(
+      product,
+      data=request.data,
+      partial=True  # Allow partial updates
+  )
+  # Can update only 'price' without providing other fields
+
+
+================================================================================
+10. CRUD OPERATIONS (GET, POST, PUT, PATCH, DELETE)
+================================================================================
+
+Complete API implementation for all CRUD operations.
+
+-----------------------------------
+10.1 GET - RETRIEVE DATA
+-----------------------------------
+
+Get All Products (List):
+  @api_view(['GET'])
+  def product_list(request):
+      queryset = Product.objects.all()
+      serializer = ProductSerializer(queryset, many=True)
+      return Response(serializer.data)
+
+  URL: GET /store/products/
+  Response: [{'id': 1, 'title': 'Laptop', ...}, {'id': 2, ...}]
+  Status: 200 OK
+
+Get Single Product (Detail):
+  @api_view(['GET'])
+  def product_detail(request, id):
+      product = get_object_or_404(Product, pk=id)
+      serializer = ProductSerializer(product)
+      return Response(serializer.data)
+
+  URL: GET /store/products/1
+  Response: {'id': 1, 'title': 'Laptop', 'price': 999.99}
+  Status: 200 OK (if found) or 404 NOT FOUND
+
+get_object_or_404 shortcut:
+  # Instead of try/except:
+  try:
+      product = Product.objects.get(pk=id)
+  except Product.DoesNotExist:
+      return Response(status=status.HTTP_404_NOT_FOUND)
+
+  # Use shortcut:
+  product = get_object_or_404(Product, pk=id)  # Auto-returns 404
+
+-----------------------------------
+10.2 POST - CREATE DATA
+-----------------------------------
+
+Create New Product:
+  @api_view(['POST'])
+  def product_list(request):
+      serializer = ProductSerializer(data=request.data)
+      serializer.is_valid(raise_exception=True)
+      serializer.save()  # Creates new product
+      return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+  URL: POST /store/products/
+  Request Body: {'title': 'Mouse', 'price': 29.99, 'inventory': 100}
+  Response: {'id': 3, 'title': 'Mouse', 'price': 29.99, 'inventory': 100}
+  Status: 201 CREATED
+
+Your code example:
+  @api_view(['GET', 'POST'])
+  def product_list(request):
+      if request.method == 'GET':
+          queryset = Product.objects.all()
+          serializer = ProductSerializer(queryset, many=True)
+          return Response(serializer.data)
+      elif request.method == 'POST':
+          serializer = ProductSerializer(data=request.data)
+          serializer.is_valid(raise_exception=True)
+          serializer.save()
+          return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+-----------------------------------
+10.3 PUT - FULL UPDATE
+-----------------------------------
+
+Replace Entire Product:
+  @api_view(['PUT'])
+  def product_detail(request, id):
+      product = get_object_or_404(Product, pk=id)
+      serializer = ProductSerializer(product, data=request.data)
+      serializer.is_valid(raise_exception=True)
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_200_OK)
+
+  URL: PUT /store/products/1
+  Request Body: {'title': 'Gaming Laptop', 'price': 1499.99, 'inventory': 50}
+  Response: {'id': 1, 'title': 'Gaming Laptop', ...}
+  Status: 200 OK
+
+Note: PUT requires ALL fields (full replacement)
+
+-----------------------------------
+10.4 PATCH - PARTIAL UPDATE
+-----------------------------------
+
+Update Specific Fields Only:
+  @api_view(['PATCH'])
+  def product_detail(request, id):
+      product = get_object_or_404(Product, pk=id)
+      serializer = ProductSerializer(
+          product,
+          data=request.data,
+          partial=True  # Allow partial updates
+      )
+      serializer.is_valid(raise_exception=True)
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_200_OK)
+
+  URL: PATCH /store/products/1
+  Request Body: {'price': 899.99}  # Only update price
+  Response: {'id': 1, 'title': 'Laptop', 'price': 899.99, ...}
+  Status: 200 OK
+
+Note: PATCH with partial=True allows updating only some fields
+
+PUT vs PATCH:
+  PUT → Full replacement (all fields required)
+  PATCH → Partial update (only changed fields)
+
+-----------------------------------
+10.5 DELETE - REMOVE DATA
+-----------------------------------
+
+Delete Product:
+  @api_view(['DELETE'])
+  def product_detail(request, id):
+      product = get_object_or_404(Product, pk=id)
+      product.delete()
+      return Response(status=status.HTTP_204_NO_CONTENT)
+
+  URL: DELETE /store/products/1
+  Response: (empty)
+  Status: 204 NO CONTENT
+
+Note: 204 = Success with no content to return
+
+-----------------------------------
+10.6 COMBINED ENDPOINT
+-----------------------------------
+
+Handle Multiple Methods in One View:
+
+Your complete code example (store/views.py):
+  @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+  def product_detail(request, id):
+      if request.method == 'GET':
+          product = get_object_or_404(Product, pk=id)
+          serializer = ProductSerializer(product)
+          return Response(serializer.data)
+
+      elif request.method == 'PUT':
+          product = get_object_or_404(Product, pk=id)
+          serializer = ProductSerializer(product, data=request.data)
+          serializer.is_valid(raise_exception=True)
+          serializer.save()
+          return Response(serializer.data, status=status.HTTP_200_OK)
+
+      elif request.method == 'PATCH':
+          product = get_object_or_404(Product, pk=id)
+          serializer = ProductSerializer(product, data=request.data, partial=True)
+          serializer.is_valid(raise_exception=True)
+          serializer.save()
+          return Response(serializer.data, status=status.HTTP_200_OK)
+
+      elif request.method == 'DELETE':
+          product = get_object_or_404(Product, pk=id)
+          product.delete()
+          return Response(status=status.HTTP_204_NO_CONTENT)
+
+URL Configuration (store/urls.py):
+  from django.urls import path
+  from . import views
+
+  urlpatterns = [
+      path('products/', views.product_list),  # List + Create
+      path('products/<int:id>', views.product_detail),  # Detail + Update + Delete
+  ]
+
+Complete API Endpoints:
+  GET    /store/products/     → List all products
+  POST   /store/products/     → Create new product
+  GET    /store/products/1    → Get product #1
+  PUT    /store/products/1    → Replace product #1 (all fields)
+  PATCH  /store/products/1    → Update product #1 (partial)
+  DELETE /store/products/1    → Delete product #1
+
+
+================================================================================
+ SUMMARY - KEY CONCEPTS
+================================================================================
+
+1. HTTP Request/Response
+   - Django: HttpRequest/HttpResponse (HTML)
+   - DRF: Request/Response (JSON)
+
+2. Installation
+   - pip install djangorestframework
+   - Add 'rest_framework' to INSTALLED_APPS
+
+3. API Views
+   - @api_view(['GET', 'POST']) decorator
+   - Specify allowed HTTP methods
+
+4. Browsable API
+   - Web interface for testing APIs
+   - Automatic documentation
+
+5. Serializers
+   - Convert models ↔ JSON
+   - Serialization: Model → JSON
+   - Deserialization: JSON → Model
+
+6. Status Codes
+   - status.HTTP_200_OK
+   - status.HTTP_201_CREATED
+   - status.HTTP_204_NO_CONTENT
+   - status.HTTP_400_BAD_REQUEST
+   - status.HTTP_404_NOT_FOUND
+
+7. Relationships
+   - Primary Key: ID only
+   - String: __str__() value
+   - Nested: Full object
+   - Hyperlink: URL
+
+8. ModelSerializer
+   - Auto-generates fields from model
+   - Less code, stays in sync
+
+9. Deserialization
+   - serializer = Serializer(data=request.data)
+   - serializer.is_valid()
+   - serializer.save()
+
+10. CRUD Operations
+    - GET: Retrieve (200)
+    - POST: Create (201)
+    - PUT: Full update (200)
+    - PATCH: Partial update (200)
+    - DELETE: Remove (204)
