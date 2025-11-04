@@ -1,12 +1,12 @@
 from django.http import HttpResponse
 
 from django.shortcuts import get_object_or_404
-from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.pagination import PageNumberPagination
+from rest_framework import status
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-from .serializers import ProductSerializer, ReviewSerializer
-from .models import Product, Review
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import (
@@ -18,6 +18,11 @@ from rest_framework.mixins import (
 )
 from rest_framework.viewsets import ModelViewSet
 
+
+from store.filters import ProductFilter
+from store.pagination import CustomPagination
+from .serializers import ProductSerializer, ReviewSerializer
+from .models import Product, Review
 
 # def product_list(request):
 #     return HttpResponse("Product List Page")
@@ -279,10 +284,17 @@ class ProductViewSet(ModelViewSet):
     """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     # if i want to filter by collection_id
     # i.e. GET /products/?collection_id=1
     filterset_fields = ['collection_id',]
+    filterset_class = ProductFilter
+    # pagination_class = PageNumberPagination
+    # Custom pagination class
+    pagination_class = CustomPagination
+
+    search_fields = ['title', 'description']
+    ordering_fields = ['price', 'title']
 
     # That's it! Just 2 lines of config and you get full CRUD!
 

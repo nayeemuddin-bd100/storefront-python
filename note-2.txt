@@ -15,7 +15,7 @@
 9. Deserializing Objects
 10. CRUD Operations (GET, POST, PUT, PATCH, DELETE)
 
-2.12
+2.25
 
 ---------------
 
@@ -35,7 +35,13 @@
 
 3. ViewSet
 4. Nested route viewset
-
+5. Filtering using django filter
+6. Custom Filtering
+7. Searching
+8. Sorting
+9.Pagination
+10. Limit offset Pagination
+11. Custom Pagination  
 
 
 ================================================================================
