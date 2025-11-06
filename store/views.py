@@ -21,8 +21,8 @@ from rest_framework.viewsets import ModelViewSet
 
 from store.filters import ProductFilter
 from store.pagination import CustomPagination
-from .serializers import ProductSerializer, ReviewSerializer
-from .models import Product, Review
+from .serializers import CartItemSerializer, CartSerializer, ProductSerializer, ReviewSerializer
+from .models import Cart, CartItem, Product, Review
 
 # def product_list(request):
 #     return HttpResponse("Product List Page")
@@ -370,3 +370,35 @@ class ReviewViewSet(ModelViewSet):
     """
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+
+
+class CartViewSet(ModelViewSet):
+    """
+    A complete ViewSet for Cart CRUD operations.
+
+    Automatically provides:
+    - list: GET /carts/ → All carts
+    - create: POST /carts/ → Create new cart
+    - retrieve: GET /carts/{id}/ → Single cart
+    - update: PUT /carts/{id}/ → Full update
+    - partial_update: PATCH /carts/{id}/ → Partial update
+    - destroy: DELETE /carts/{id}/ → Delete cart
+    """
+    queryset = Cart.objects.prefetch_related('items__product').all()
+    serializer_class = CartSerializer
+
+
+class CartItemViewSet(ModelViewSet):
+    """
+    A complete ViewSet for CartItem CRUD operations.
+
+    Automatically provides:
+    - list: GET /cart-items/ → All cart items
+    - create: POST /cart-items/ → Create new cart item
+    - retrieve: GET /cart-items/{id}/ → Single cart item
+    - update: PUT /cart-items/{id}/ → Full update
+    - partial_update: PATCH /cart-items/{id}/ → Partial update
+    - destroy: DELETE /cart-items/{id}/ → Delete cart item
+    """
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer

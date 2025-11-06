@@ -52,14 +52,19 @@ from . import views
 
 router = DefaultRouter()
 router.register('products', views.ProductViewSet, basename='product')
+router.register('carts', views.CartViewSet, basename='cart')
+
 
 product_router = routers.NestedDefaultRouter(
     router, 'products', lookup='product')
 product_router.register('reviews', views.ReviewViewSet,
                         basename='product-reviews')
+# Create nested router for cart items (similar to product reviews)
+cart_router = routers.NestedDefaultRouter(router, 'carts', lookup='cart')
+cart_router.register('items', views.CartItemViewSet, basename='cart-items')
 
 # The router.urls contains all auto-generated URL patterns
-urlpatterns = router.urls + product_router.urls
+urlpatterns = router.urls + product_router.urls + cart_router.urls
 
 # Alternative: If you want to mix manual URLs with router URLs:
 # urlpatterns = [
